@@ -66,8 +66,8 @@ use crate::ui::AgentOnboardingModal;
 use crate::{
     AddContextServer, AgentDiffPane, ContextStore, DeleteRecentlyOpenThread, ExpandMessageEditor,
     Follow, InlineAssistant, NewTextThread, NewThread, OpenActiveThreadAsMarkdown, OpenAgentDiff,
-    OpenHistory, ResetTrialUpsell, TextThreadStore, ThreadEvent, ToggleContextPicker,
-    ToggleNavigationMenu, ToggleOptionsMenu,
+    OpenAgentInModal, OpenHistory, ResetTrialUpsell, TextThreadStore, ThreadEvent,
+    ToggleContextPicker, ToggleNavigationMenu, ToggleOptionsMenu,
 };
 
 const AGENT_PANEL_KEY: &str = "agent_panel";
@@ -158,6 +158,15 @@ pub fn init(cx: &mut App) {
                 })
                 .register_action(|_workspace, _: &ResetTrialUpsell, _window, cx| {
                     set_trial_upsell_dismissed(false, cx);
+                })
+                .register_action(|workspace, _: &OpenAgentInModal, window, cx| {
+                    if let Some(panel) = workspace.panel::<AgentPanel>(cx) {
+                        workspace.follow(CollaboratorId::Agent, window, cx);
+                        workspace.toggle_modal(window, cx, |window, cx| {
+                            use crate::ui::AgentModal;
+                            AgentModal::new(panel.clone(), window, cx)
+                        });
+                    }
                 });
         },
     )
@@ -339,14 +348,14 @@ impl ActiveView {
 }
 
 pub struct AgentPanel {
-    workspace: WeakEntity<Workspace>,
+    pub workspace: WeakEntity<Workspace>,
     user_store: Entity<UserStore>,
     project: Entity<Project>,
     fs: Arc<dyn Fs>,
     language_registry: Arc<LanguageRegistry>,
     thread_store: Entity<ThreadStore>,
-    thread: Entity<ActiveThread>,
-    message_editor: Entity<MessageEditor>,
+    pub thread: Entity<ActiveThread>,
+    pub message_editor: Entity<MessageEditor>,
     _active_thread_subscriptions: Vec<Subscription>,
     _default_model_subscription: Subscription,
     context_store: Entity<TextThreadStore>,
@@ -1762,11 +1771,13 @@ impl AgentPanel {
                     menu = menu
                         .action("Rules…", Box::new(OpenRulesLibrary::default()))
                         .action("Settings", Box::new(OpenConfiguration))
+                        .action("Open in Modal", Box::new(OpenAgentInModal))
                         .action(zoom_in_label, Box::new(ToggleZoom));
                     menu
                 }))
             });
 
+        let cloned_handle = focus_handle.clone();
         h_flex()
             .id("assistant-toolbar")
             .h(Tab::container_height(cx))
@@ -1802,6 +1813,23 @@ impl AgentPanel {
                             .px(DynamicSpacing::Base08.rems(cx))
                             .border_l_1()
                             .border_color(cx.theme().colors().border)
+                            .child(
+                                IconButton::new("open-in-modal", IconName::ChevronDown)
+                                    .icon_size(IconSize::Small)
+                                    .style(ButtonStyle::Subtle)
+                                    .tooltip(move |window, cx| {
+                                        Tooltip::for_action_in(
+                                            "Open in Modal",
+                                            &OpenAgentInModal,
+                                            &cloned_handle,
+                                            window,
+                                            cx,
+                                        )
+                                    })
+                                    .on_click(move |_event, window, cx| {
+                                        window.dispatch_action(OpenAgentInModal.boxed_clone(), cx);
+                                    }),
+                            )
                             .child(
                                 IconButton::new("new", IconName::Plus)
                                     .icon_size(IconSize::Small)

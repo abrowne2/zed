@@ -8,7 +8,7 @@
 //! - `ui_input` - the single line input component
 
 pub mod component_prelude;
-mod components;
+pub mod components;
 pub mod prelude;
 mod styles;
 mod traits;

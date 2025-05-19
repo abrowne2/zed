@@ -17,7 +17,7 @@ mod keybinding;
 mod keybinding_hint;
 mod label;
 mod list;
-mod modal;
+pub mod modal;
 mod navigable;
 mod notification;
 mod numeric_stepper;
