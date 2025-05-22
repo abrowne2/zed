@@ -1,6 +1,3 @@
-use std::rc::Rc;
-use std::sync::RwLock;
-
 use crate::agent_panel::AgentPanel;
 use gpui::{prelude::*, *};
 use ui::components::modal::{Modal, ModalHeader};
@@ -46,6 +43,7 @@ impl Render for AgentModal {
         // Create our modal content
         div()
             .elevation_3(modal_cx)
+            .bottom_neg_128()
             .key_context("AgentModal")
             .track_focus(&focus_handle)
             .on_action(modal_cx.listener(|_, _: &menu::Cancel, _window, cx| {
@@ -89,6 +87,7 @@ impl Render for AgentModal {
                             .justify_between()
                             .bg(modal_cx.theme().colors().background)
                             .min_h(px(600.0))
+                            .min_w(px(400.0))
                             // Directly render the thread if it exists
                             .child(if has_active_thread {
                                 self.agent_panel.update(modal_cx, |agent, _cx| {
