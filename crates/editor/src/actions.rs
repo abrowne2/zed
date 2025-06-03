@@ -322,6 +322,7 @@ actions!(
         InsertUuidV4,
         InsertUuidV7,
         JoinLines,
+        JumpToLastEdit,
         KillRingCut,
         KillRingYank,
         LineDown,

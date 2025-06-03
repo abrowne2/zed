@@ -43,7 +43,6 @@ impl Render for AgentModal {
         // Create our modal content
         div()
             .elevation_3(modal_cx)
-            .bottom_neg_128()
             .key_context("AgentModal")
             .track_focus(&focus_handle)
             .on_action(modal_cx.listener(|_, _: &menu::Cancel, _window, cx| {
